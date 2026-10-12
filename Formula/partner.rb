@@ -26,9 +26,9 @@
 class Partner < Formula
   desc "Partner remote-desktop host daemon (command-line/server distribution)"
   homepage "https://partner.gurupras.me"
-  url "https://partner.gurupras.me/download/0.6.6/partner-0.6.6-darwin-arm64.tar.gz"
-  sha256 "9971306af301287386099012ba79da3b5db424ce09e7784fc96e4cd7ac301c70"
-  version "0.6.6"
+  url "https://partner.gurupras.me/download/0.6.7/partner-0.6.7-darwin-arm64.tar.gz"
+  sha256 "de0f8e8e5db76e653880df3e965530cc5151b5796b998ed7efed2fd82fde1296"
+  version "0.6.7"
   license :cannot_represent
 
   # The published archive is built for Apple Silicon only. Declaring it keeps
@@ -44,7 +44,7 @@ class Partner < Formula
     bin.install "bin/partnerd"
     # Notices for the codec libraries statically linked into partnerd.
     prefix.install "licenses" if File.directory?("licenses")
-    (prefix/"VERSION").write("0.6.6\n") if File.exist?("VERSION")
+    (prefix/"VERSION").write("0.6.7\n") if File.exist?("VERSION")
   end
 
   # `brew services start partner` runs the daemon under the invoking user.
@@ -86,6 +86,6 @@ class Partner < Formula
     # dispatches subcommands and anything unrecognised falls through to
     # usage() + exit 2, so this assertion failed on every genuine release
     # archive. It only ever "passed" against the harness's shell stub.
-    assert_match "0.6.6", shell_output("#{bin}/partnerd version 2>&1")
+    assert_match "0.6.7", shell_output("#{bin}/partnerd version 2>&1")
   end
 end
