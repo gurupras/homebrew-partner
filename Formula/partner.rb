@@ -24,11 +24,11 @@
 # for the lifetime of this revision. The archive itself is Developer ID
 # Application-signed and notarized before it is ever published.
 class Partner < Formula
-  desc "Partner remote-desktop host daemon (command-line/server distribution)"
+  desc "Remote-desktop host daemon (command-line/server distribution)"
   homepage "https://partner.gurupras.me"
-  url "https://partner.gurupras.me/download/0.6.7/partner-0.6.7-darwin-arm64.tar.gz"
-  sha256 "de0f8e8e5db76e653880df3e965530cc5151b5796b998ed7efed2fd82fde1296"
-  version "0.6.7"
+  url "https://partner.gurupras.me/download/0.6.8/partner-0.6.8-darwin-arm64.tar.gz"
+  version "0.6.8"
+  sha256 "460ba4de1dd8863f71a0b24b7d6cd43f1c0322ef5976a8bd901bad283a732f86"
   license :cannot_represent
 
   # The published archive is built for Apple Silicon only. Declaring it keeps
@@ -44,7 +44,7 @@ class Partner < Formula
     bin.install "bin/partnerd"
     # Notices for the codec libraries statically linked into partnerd.
     prefix.install "licenses" if File.directory?("licenses")
-    (prefix/"VERSION").write("0.6.7\n") if File.exist?("VERSION")
+    (prefix/"VERSION").write("0.6.8\n") if File.exist?("VERSION")
   end
 
   # `brew services start partner` runs the daemon under the invoking user.
@@ -59,6 +59,20 @@ class Partner < Formula
     run_type :immediate
     log_path var/"log/partnerd.log"
     error_log_path var/"log/partnerd.err.log"
+  end
+
+  # An upgrade leaves a running service on the old binary: launchd keeps the
+  # process it started, and `brew upgrade` does not restart services. Restart
+  # it here, so the daemon that is running is the one that was just installed.
+  # Only a service that is already loaded for this user is touched; nothing is
+  # started that was not running (unattended access stays opt-in).
+  def post_install
+    # plist_name is the launchd label (homebrew.mxcl.partner); service_name is
+    # the systemd one.
+    target = "gui/#{Process.uid}/#{plist_name}"
+    return unless quiet_system "/bin/launchctl", "print", target
+
+    system "/bin/launchctl", "kickstart", "-k", target
   end
 
   def caveats
@@ -86,6 +100,6 @@ class Partner < Formula
     # dispatches subcommands and anything unrecognised falls through to
     # usage() + exit 2, so this assertion failed on every genuine release
     # archive. It only ever "passed" against the harness's shell stub.
-    assert_match "0.6.7", shell_output("#{bin}/partnerd version 2>&1")
+    assert_match "0.6.8", shell_output("#{bin}/partnerd version 2>&1")
   end
 end
