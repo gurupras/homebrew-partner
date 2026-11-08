@@ -8,27 +8,22 @@
 # this repository so the formula is reviewed and tested alongside the code it
 # installs, rather than being hand-edited in the tap.
 #
-# SCOPE (FR-009): this formula installs the headless `partnerd` daemon — the
-# command-line/server distribution. It is NOT the graphical Partner app.
-#
-# The app ships in the macOS installer, `Partner-<version>-darwin-<arch>.pkg`,
-# which carries the app AND the daemon (constitution Principle X). Until 0.6.1
-# that .pkg was never built, so this formula was macOS's only channel and macOS
-# users could not get the app at all — the earlier note here, that a Cask must
-# wait for the GUI to have its own signing path, described a gap rather than a
-# decision. A Cask wrapping that .pkg is the remaining piece for `brew` to
-# deliver both; the .pkg is the channel today.
+# SCOPE: this formula installs the headless `partnerd` daemon on its own, for
+# servers and unattended Macs with no one at the screen. It is NOT the graphical
+# Partner app. The full Partner (app and service) is the `partner` cask in the
+# same tap, which installs the signed .pkg: `brew install partner` resolves to
+# that cask because no formula shares its name.
 #
 # TRUST: the archive is pinned by URL and SHA-256. The URL is immutable (it
 # names an exact version, never `latest`), so the checksum below stays valid
 # for the lifetime of this revision. The archive itself is Developer ID
 # Application-signed and notarized before it is ever published.
-class Partner < Formula
+class Partnerd < Formula
   desc "Remote-desktop host daemon (command-line/server distribution)"
   homepage "https://partner.gurupras.me"
-  url "https://partner.gurupras.me/download/0.6.10/partner-0.6.10-darwin-arm64.tar.gz"
-  version "0.6.10"
-  sha256 "7bdd55f3a0f4520e913edb814176aa2f01383d1eaf4b5213277728815737289b"
+  url "https://partner.gurupras.me/download/0.6.11/partner-0.6.11-darwin-arm64.tar.gz"
+  version "0.6.11"
+  sha256 "881e156766df3388a6966aae547d0621f3433d3faca86239e315a4fb544d9d7f"
   license :cannot_represent
 
   # The published archive is built for Apple Silicon only. Declaring it keeps
@@ -44,10 +39,10 @@ class Partner < Formula
     bin.install "bin/partnerd"
     # Notices for the codec libraries statically linked into partnerd.
     prefix.install "licenses" if File.directory?("licenses")
-    (prefix/"VERSION").write("0.6.10\n") if File.exist?("VERSION")
+    (prefix/"VERSION").write("0.6.11\n") if File.exist?("VERSION")
   end
 
-  # `brew services start partner` runs the daemon under the invoking user.
+  # `brew services start partnerd` runs the daemon under the invoking user.
   #
   # It is deliberately NOT started on install and NOT run as root: unattended
   # reachability is opt-in (feature 008), and the user-level launchd job here
@@ -67,7 +62,7 @@ class Partner < Formula
   # Only a service that is already loaded for this user is touched; nothing is
   # started that was not running (unattended access stays opt-in).
   def post_install
-    # plist_name is the launchd label (homebrew.mxcl.partner); service_name is
+    # plist_name is the launchd label (homebrew.mxcl.partnerd); service_name is
     # the systemd one.
     target = "gui/#{Process.uid}/#{plist_name}"
     return unless quiet_system "/bin/launchctl", "print", target
@@ -77,19 +72,15 @@ class Partner < Formula
 
   def caveats
     <<~EOS
-      This formula installs the Partner command-line/server daemon only —
-      for servers and unattended hosts with no one at the screen.
-
-      If you want the Partner app (the GUI), install the macOS package from
-      https://partner.gurupras.me/download instead. It contains both the app
-      and this daemon, and the daemon stays installed-but-stopped until you
-      turn on unattended access from inside the app.
+      This formula installs the Partner command-line/server daemon only,
+      not the graphical app. For the full Partner (app and service), use:
+        brew install --cask partner
 
       Partner does not start automatically. To enable unattended access:
-        brew services start partner
+        brew services start partnerd
 
       Upgrades are managed by Homebrew:
-        brew update && brew upgrade partner
+        brew update && brew upgrade partnerd
       Partner's own self-update is disabled for this installation so that it
       never writes over files Homebrew owns.
     EOS
@@ -100,6 +91,6 @@ class Partner < Formula
     # dispatches subcommands and anything unrecognised falls through to
     # usage() + exit 2, so this assertion failed on every genuine release
     # archive. It only ever "passed" against the harness's shell stub.
-    assert_match "0.6.10", shell_output("#{bin}/partnerd version 2>&1")
+    assert_match "0.6.11", shell_output("#{bin}/partnerd version 2>&1")
   end
 end
