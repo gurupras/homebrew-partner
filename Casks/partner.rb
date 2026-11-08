@@ -15,8 +15,8 @@
 # updater for /Applications/Partner.app. `brew upgrade --greedy` reinstalls the
 # current .pkg, which is harmless.
 cask "partner" do
-  version "0.6.11"
-  sha256 "6a2f43841e2668b725728332476cba1db68d6c191d6e215eb8d5c26f172898b5"
+  version "0.6.12"
+  sha256 "fbca7f75b9d3d0eb596ded784d24968d081a3a3a53f6d4cc25361074722abcb3"
 
   url "https://partner.gurupras.me/download/#{version}/Partner-#{version}-darwin-arm64.pkg"
   name "Partner"
@@ -51,17 +51,28 @@ cask "partner" do
               "/Library/LaunchDaemons/xyz.partner.partnerd.plist",
             ]
 
-  zap trash: [
-    "~/Library/Application Support/xyz.partner.partnerController",
-    "~/Library/Caches/xyz.partner.partnerController",
-    "~/Library/Preferences/xyz.partner.partnerController.plist",
-  ]
+  # A plain uninstall keeps the service's identity in /Library/Application
+  # Support/Partner so a reinstall is the same computer (as the TeamViewer and
+  # AnyDesk casks do). --zap forgets the machine: the next install gets a new ID.
+  # `delete`, not `trash`: it holds the machine's private key.
+  zap delete: "/Library/Application Support/Partner",
+      trash:  [
+        "~/Library/Application Support/xyz.partner.partnerController",
+        "~/Library/Caches/xyz.partner.partnerController",
+        "~/Library/Preferences/xyz.partner.partnerController.plist",
+      ],
+      rmdir:  [
+        "/etc/partner",
+        "/var/run/partner",
+      ]
 
   caveats <<~EOS
     Partner does not run as a service until you ask it to: open the app and turn
     on unattended access (one administrator prompt).
 
-    The app updates itself. To remove everything, including the service:
+    The app updates itself. To remove the app and the service:
       brew uninstall --cask partner
+    That keeps this computer's Partner ID for a later reinstall. To erase it too:
+      brew uninstall --zap --cask partner
   EOS
 end
