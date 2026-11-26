@@ -15,8 +15,8 @@
 # updater for /Applications/Partner.app. `brew upgrade --greedy` reinstalls the
 # current .pkg, which is harmless.
 cask "partner" do
-  version "0.6.12"
-  sha256 "fbca7f75b9d3d0eb596ded784d24968d081a3a3a53f6d4cc25361074722abcb3"
+  version "0.6.13"
+  sha256 "de59ce51d862be88a55803a7b1a136af6176e79b9477d45838075791c7cb0e8e"
 
   url "https://partner.gurupras.me/download/#{version}/Partner-#{version}-darwin-arm64.pkg"
   name "Partner"
@@ -40,15 +40,22 @@ cask "partner" do
   pkg "Partner-#{version}-darwin-arm64.pkg"
 
   # The pkg receipt covers the app, /Library/PrivilegedHelperTools/partnerd and
-  # the /usr/local/bin link. The launchd plist is NOT in the receipt: the app
-  # writes it when the user turns unattended access on, so remove it by hand.
-  uninstall launchctl: "xyz.partner.partnerd",
-            quit:      "xyz.partner.partnerController",
-            pkgutil:   "xyz.partner.partnerd",
+  # the /usr/local/bin link. The launchd plists are NOT in the receipt: the app
+  # writes them (the service and its two agents) when the user turns
+  # unattended access on, so remove them by hand.
+  uninstall launchctl: [
+              "me.gurupras.partner.partnerd",
+              "me.gurupras.partner.loginwindow",
+              "me.gurupras.partner.session",
+            ],
+            quit:      "me.gurupras.partner.app",
+            pkgutil:   "me.gurupras.partner.partnerd",
             delete:    [
               "/etc/partner/install-kind",
               "/etc/partner/install-origin",
-              "/Library/LaunchDaemons/xyz.partner.partnerd.plist",
+              "/Library/LaunchDaemons/me.gurupras.partner.partnerd.plist",
+              "/Library/LaunchAgents/me.gurupras.partner.loginwindow.plist",
+              "/Library/LaunchAgents/me.gurupras.partner.session.plist",
             ]
 
   # A plain uninstall keeps the service's identity in /Library/Application
@@ -57,9 +64,9 @@ cask "partner" do
   # `delete`, not `trash`: it holds the machine's private key.
   zap delete: "/Library/Application Support/Partner",
       trash:  [
-        "~/Library/Application Support/xyz.partner.partnerController",
-        "~/Library/Caches/xyz.partner.partnerController",
-        "~/Library/Preferences/xyz.partner.partnerController.plist",
+        "~/Library/Application Support/me.gurupras.partner.app",
+        "~/Library/Caches/me.gurupras.partner.app",
+        "~/Library/Preferences/me.gurupras.partner.app.plist",
       ],
       rmdir:  [
         "/etc/partner",
