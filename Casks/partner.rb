@@ -15,8 +15,8 @@
 # updater for /Applications/Partner.app. `brew upgrade --greedy` reinstalls the
 # current .pkg, which is harmless.
 cask "partner" do
-  version "0.6.14"
-  sha256 "136d4681dc5a1b2b95eabf4167800c7544bc877f6ecdf88acdb4ffc84e42bf06"
+  version "0.6.15"
+  sha256 "647f5cfc2c0ca663a19c0f236de1a3c99621c480255790c7c61b43d418d0e322"
 
   url "https://partner.gurupras.me/download/#{version}/Partner-#{version}-darwin-arm64.pkg"
   name "Partner"
